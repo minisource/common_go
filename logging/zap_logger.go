@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/naeemaei/golang-clean-web-api/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -14,7 +13,7 @@ import (
 var zapSinLogger *zap.SugaredLogger
 
 type zapLogger struct {
-	cfg    *config.Config
+	cfg    *LoggerConfig
 	logger *zap.SugaredLogger
 }
 
@@ -26,14 +25,14 @@ var zapLogLevelMapping = map[string]zapcore.Level{
 	"fatal": zapcore.FatalLevel,
 }
 
-func newZapLogger(cfg *config.Config) *zapLogger {
+func newZapLogger(cfg *LoggerConfig) *zapLogger {
 	logger := &zapLogger{cfg: cfg}
 	logger.Init()
 	return logger
 }
 
 func (l *zapLogger) getLogLevel() zapcore.Level {
-	level, exists := zapLogLevelMapping[l.cfg.Logger.Level]
+	level, exists := zapLogLevelMapping[l.cfg.Level]
 	if !exists {
 		return zapcore.DebugLevel
 	}
@@ -42,7 +41,7 @@ func (l *zapLogger) getLogLevel() zapcore.Level {
 
 func (l *zapLogger) Init() {
 	once.Do(func() {
-		fileName := fmt.Sprintf("%s%s-%s.%s",l.cfg.Logger.FilePath,time.Now().Format("2006-01-02"),uuid.New(),"log")
+		fileName := fmt.Sprintf("%s%s-%s.%s", l.cfg.FilePath, time.Now().Format("2006-01-02"), uuid.New(), "log")
 		w := zapcore.AddSync(&lumberjack.Logger{
 			Filename:   fileName,
 			MaxSize:    1,

@@ -1,7 +1,5 @@
 package logging
 
-import "github.com/naeemaei/golang-clean-web-api/config"
-
 type Logger interface {
 	Init()
 
@@ -21,10 +19,10 @@ type Logger interface {
 	Fatalf(template string, args ...interface{})
 }
 
-func NewLogger(cfg *config.Config) Logger {
-	if cfg.Logger.Logger == "zap" {
+func NewLogger(cfg *LoggerConfig) Logger {
+	if cfg.Logger == "zap" {
 		return newZapLogger(cfg)
-	} else if cfg.Logger.Logger == "zerolog" {
+	} else if cfg.Logger == "zerolog" {
 		return newZeroLogger(cfg)
 	}
 	panic("logger not supported")

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/naeemaei/golang-clean-web-api/config"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 )
@@ -16,7 +15,7 @@ var once sync.Once
 var zeroSinLogger *zerolog.Logger
 
 type zeroLogger struct {
-	cfg    *config.Config
+	cfg    *LoggerConfig
 	logger *zerolog.Logger
 }
 
@@ -28,14 +27,14 @@ var zeroLogLevelMapping = map[string]zerolog.Level{
 	"fatal": zerolog.FatalLevel,
 }
 
-func newZeroLogger(cfg *config.Config) *zeroLogger {
+func newZeroLogger(cfg *LoggerConfig) *zeroLogger {
 	logger := &zeroLogger{cfg: cfg}
 	logger.Init()
 	return logger
 }
 
 func (l *zeroLogger) getLogLevel() zerolog.Level {
-	level, exists := zeroLogLevelMapping[l.cfg.Logger.Level]
+	level, exists := zeroLogLevelMapping[l.cfg.Level]
 	if !exists {
 		return zerolog.DebugLevel
 	}
@@ -46,7 +45,7 @@ func (l *zeroLogger) Init() {
 	once.Do(func() {
 
 		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-		fileName := fmt.Sprintf("%s%s-%s.%s",l.cfg.Logger.FilePath,time.Now().Format("2006-01-02"),uuid.New(),"log")
+		fileName := fmt.Sprintf("%s%s-%s.%s", l.cfg.FilePath, time.Now().Format("2006-01-02"), uuid.New(), "log")
 
 		file, err := os.OpenFile(fileName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		if err != nil {
