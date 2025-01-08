@@ -1,6 +1,6 @@
 package helper
 
-import validation "github.com/minisource/common/validations"
+import validation "github.com/minisource/common_go/validations"
 
 
 type BaseHttpResponse struct {
