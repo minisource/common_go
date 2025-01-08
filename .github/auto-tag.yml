@@ -1,0 +1,38 @@
+name: Auto Tagging
+
+on:
+  push:
+    branches:
+      - main  # Adjust this if you use a different branch for development
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Auto Increment Version and Tag
+        run: |
+          # Fetch latest tags and current version
+          git fetch --tags
+          LATEST_TAG=$(git tag -l | sort -V | tail -n 1)
+          echo "Latest Tag: $LATEST_TAG"
+
+          # Extract version numbers (Assumes semantic versioning)
+          MAJOR=$(echo $LATEST_TAG | cut -d. -f1)
+          MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+          PATCH=$(echo $LATEST_TAG | cut -d. -f3)
+
+          # Increment patch version
+          NEW_TAG="$MAJOR.$MINOR.$((PATCH + 1))"
+          echo "New Tag: $NEW_TAG"
+
+          # Tag and push
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
