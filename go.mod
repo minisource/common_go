@@ -12,7 +12,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
-require github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+require github.com/patrickmn/go-cache v2.1.0+incompatible // indirect	
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
