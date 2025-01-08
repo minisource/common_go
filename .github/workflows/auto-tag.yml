@@ -1,4 +1,4 @@
-name: Auto Tagging
+name: Auto Tagging with Timestamp
 
 on:
   push:
@@ -20,23 +20,11 @@ jobs:
       - name: Fetch Tags
         run: git fetch --tags
 
-      - name: Auto Increment Version and Tag
+      - name: Auto Tag with Timestamp
         run: |
-          # Get the latest tag or default to v0.0.0
-          LATEST_TAG=$(git tag -l | sort -V | tail -n 1)
-          if [ -z "$LATEST_TAG" ]; then
-            echo "No tags found. Starting with v0.0.1"
-            NEW_TAG="v0.0.1"
-          else
-            echo "Latest Tag: $LATEST_TAG"
-            # Extract version components (vX.Y.Z)
-            MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | sed 's/v//')
-            MINOR=$(echo $LATEST_TAG | cut -d. -f2)
-            PATCH=$(echo $LATEST_TAG | cut -d. -f3)
-            
-            # Increment patch version
-            NEW_TAG="v$MAJOR.$MINOR.$((PATCH + 1))"
-          fi
+          # Generate timestamp-based tag in the format vYYYYMMDD-HHMMSS
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+          NEW_TAG="v$TIMESTAMP"
           
           echo "New Tag: $NEW_TAG"
           
