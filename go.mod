@@ -1,4 +1,4 @@
-module github.com/minisource/common
+module github.com/minisource/common_go
 
 go 1.23.4
 
