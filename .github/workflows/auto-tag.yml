@@ -3,7 +3,7 @@ name: Auto Tagging with Timestamp
 on:
   push:
     branches:
-      - main  # Adjust this if you use a different branch
+      - main
 
 jobs:
   tag:
@@ -30,4 +30,6 @@ jobs:
           
           # Tagging and pushing the new version
           git tag $NEW_TAG
+          git tag -f latest  # Force update 'latest' tag to the current commit
           git push origin $NEW_TAG
+          git push origin latest --force
