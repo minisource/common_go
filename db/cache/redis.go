@@ -10,7 +10,18 @@ import (
 
 var redisClient *redis.Client
 
-g
+type RedisConfig struct {
+	Host               string        `env:"REDIS_Host"`
+	Port               string        `env:"REDIS_PORT"`
+	Password           string        `env:"REDIS_PASSWORD"`
+	Db                 string        `env:"REDIS_DB"`
+	DialTimeout        time.Duration `env:"REDIS_DIALTIMEOUT"`
+	ReadTimeout        time.Duration `env:"REDIS_READTIMEOUT"`
+	WriteTimeout       time.Duration `env:"REDIS_WRITETIMEOUT"`
+	IdleCheckFrequency time.Duration `env:"REDIS_IDLECHECKFREQUENCY"`
+	PoolSize           int           `env:"REDIS_POOL_SIZE"`
+	PoolTimeout        time.Duration `env:"REDIS_POOL_TIMEOUT"`
+}
 
 func InitRedis(cfg *RedisConfig) error {
 	redisClient = redis.NewClient(&redis.Options{
