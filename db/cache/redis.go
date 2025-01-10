@@ -11,7 +11,7 @@ import (
 var redisClient *redis.Client
 
 type RedisConfig struct {
-	Host               string        `env:"REDIS_Host"`
+	Host               string        `env:"REDIS_HOST"`
 	Port               string        `env:"REDIS_PORT"`
 	Password           string        `env:"REDIS_PASSWORD"`
 	Db                 string        `env:"REDIS_DB"`
