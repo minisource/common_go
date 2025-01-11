@@ -28,7 +28,7 @@ func (client *APIClient) GetResourceWithAuthorization(method, resourcePath strin
     }
 
     // ارسال درخواست به API
-    req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", client.BaseURL, resourcePath), nil)
+    req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), nil)
     if err != nil {
         return "", err
     }
@@ -53,7 +53,7 @@ func (client *APIClient) GetResourceWithAuthorization(method, resourcePath strin
 
 func (client *APIClient) GetResource(method, resourcePath string) (string, error) {
     // ارسال درخواست به API
-    req, err := http.NewRequest(method, fmt.Sprintf("%s/%s", client.BaseURL, resourcePath), nil)
+    req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), nil)
     if err != nil {
         return "", err
     }
