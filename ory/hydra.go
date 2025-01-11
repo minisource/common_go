@@ -8,14 +8,15 @@ import(
 var hydraClient *hydra.APIClient
 
 type HydraConfig struct{
-    Url string `env:"HYDRA_URL"`
+    PrivateUrl string `env:"HYDRA_URL_PRIVATE"`
+    PublicUrl string `env:"HYDRA_URL_PUBLIC"`
 }
 
 func InitHydra(cfg *HydraConfig) {
 	config := hydra.NewConfiguration()
     config.Servers = hydra.ServerConfigurations{
         {
-            URL: cfg.Url,
+            URL: cfg.PrivateUrl,
         },
     }
     hydraClient = hydra.NewAPIClient(config)
