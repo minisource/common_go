@@ -51,23 +51,23 @@ func (client *APIClient) GetResourceWithAuthorization(method, resourcePath strin
 }
 
 
-func (client *APIClient) GetResource(method, resourcePath string) (string, error) {
+func (client *APIClient) GetResource(method, resourcePath string) ([]byte, error) {
     // ارسال درخواست به API
     req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), nil)
     if err != nil {
-        return "", err
+        return nil, err
     }
 
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        return "", err
+        return nil, err
     }
     defer resp.Body.Close()
 
     body, err := io.ReadAll(resp.Body)
     if err != nil {
-        return "", err
+        return nil, err
     }
 
-    return string(body), nil
+    return body, nil
 }
