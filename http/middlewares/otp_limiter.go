@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	helper "github.com/minisource/common_go/http/helpers"
+	helper "github.com/minisource/common_go/http/helper"
 	"github.com/minisource/common_go/limiter"
 	"golang.org/x/time/rate"
 )
