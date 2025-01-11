@@ -20,17 +20,17 @@ func NewAPIClient(baseURL string, jwtManager *services.JWTManager) *APIClient {
     }
 }
 
-func (client *APIClient) GetResourceWithAuthorization(method, resourcePath string) (string, error) {
+func (client *APIClient) GetResourceWithAuthorization(method, resourcePath string) ([]byte, error) {
     // دریافت توکن
     token, err := client.JWTManager.GetToken()
     if err != nil {
-        return "", err
+        return nil, err
     }
 
     // ارسال درخواست به API
     req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), nil)
     if err != nil {
-        return "", err
+        return nil, err
     }
 
     // اضافه کردن هدر برای احراز هویت
@@ -38,16 +38,16 @@ func (client *APIClient) GetResourceWithAuthorization(method, resourcePath strin
 
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        return "", err
+        return nil, err
     }
     defer resp.Body.Close()
 
     body, err := io.ReadAll(resp.Body)
     if err != nil {
-        return "", err
+        return nil, err
     }
 
-    return string(body), nil
+    return body, nil
 }
 
 
