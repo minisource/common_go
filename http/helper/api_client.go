@@ -42,6 +42,10 @@ func (client *APIClient) GetResourceWithAuthorization(method, resourcePath strin
     }
     defer resp.Body.Close()
 
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("received non-200 response status: %d", resp.StatusCode)
+    }
+
     body, err := io.ReadAll(resp.Body)
     if err != nil {
         return nil, err
@@ -63,6 +67,10 @@ func (client *APIClient) GetResource(method, resourcePath string) ([]byte, error
         return nil, err
     }
     defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("received non-200 response status: %d", resp.StatusCode)
+    }
 
     body, err := io.ReadAll(resp.Body)
     if err != nil {
