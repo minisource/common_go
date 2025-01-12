@@ -22,7 +22,7 @@ func NewAPIClient(baseURL string, jwtManager *services.JWTManager) *APIClient {
 	}
 }
 
-func (client *APIClient) GetResourceWithAuthorization(method, resourcePath string, bodyData interface{}) ([]byte, error) {
+func (client *APIClient) MakeRequestWithAuthorization(method, resourcePath string, bodyData interface{}) ([]byte, error) {
 	// دریافت توکن
 	token, err := client.JWTManager.GetToken()
 	if err != nil {

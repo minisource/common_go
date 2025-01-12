@@ -1,12 +1,13 @@
 package services
 
 import (
-    "encoding/json"
-    "errors"
-    "net/http"
-    "net/url"
-    "sync"
-    "time"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"sync"
+	"time"
 )
 
 type Token struct {
@@ -39,33 +40,42 @@ func (j *JWTManager) GetToken() (*Token, error) {
         return j.token, nil
     }
 
-    data := url.Values{}
-    data.Set("grant_type", "client_credentials")
-    data.Set("client_id", j.clientID)
-    data.Set("client_secret", j.clientSecret)
+    payload := map[string]string{
+        "client_id":     j.clientID,
+        "client_secret": j.clientSecret,
+    }
 
-    resp, err := http.PostForm(j.tokenURL, data)
+    payloadBytes, err := json.Marshal(payload)
+    if err != nil {
+        return nil, err
+    }
+
+    req, err := http.NewRequest("POST", j.tokenURL, bytes.NewBuffer(payloadBytes))
+    if err != nil {
+        return nil, err
+    }
+
+    req.Header.Set("Content-Type", "application/json")
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
     if err != nil {
         return nil, err
     }
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {
-        return nil, errors.New("failed to retrieve token")
+        body, _ := io.ReadAll(resp.Body) // for debugging purposes
+        return nil, fmt.Errorf("failed to retrieve token, status: %d, body: %s", resp.StatusCode, string(body))
     }
 
     var token Token
-    json.NewDecoder(resp.Body).Decode(&token)
+    if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+        return nil, err
+    }
+
     token.tokenExpiry = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
     j.token = &token
 
     return &token, nil
-}
-
-func (j *JWTManager) GetAuthToken() (string, error) {
-    token, err := j.GetToken()
-    if err != nil {
-        return "", err
-    }
-    return token.AccessToken, nil
 }
