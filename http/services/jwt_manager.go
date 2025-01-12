@@ -11,9 +11,17 @@ import (
 )
 
 type Token struct {
-    AccessToken string `json:"access_token"`
-    ExpiresIn   int    `json:"expires_in"`
-    tokenExpiry time.Time
+    AccessToken string    `json:"access_token"`
+    TokenType   string    `json:"token_type"`
+    Expiry      time.Time `json:"expiry"`
+}
+
+type TokenResponse struct {
+    Result          Token `json:"result"`
+    Success         bool  `json:"success"`
+    ResultCode      int   `json:"resultCode"`
+    ValidationErrors any   `json:"validationErrors"`
+    Error           any   `json:"error"`
 }
 
 type JWTManager struct {
@@ -36,7 +44,7 @@ func (j *JWTManager) GetToken() (*Token, error) {
     j.mu.Lock()
     defer j.mu.Unlock()
 
-    if j.token != nil && time.Now().Before(j.token.tokenExpiry) {
+    if j.token != nil && time.Now().Before(j.token.Expiry) {
         return j.token, nil
     }
 
@@ -65,17 +73,27 @@ func (j *JWTManager) GetToken() (*Token, error) {
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusOK {
-        body, _ := io.ReadAll(resp.Body) // for debugging purposes
+        body, _ := io.ReadAll(resp.Body)
         return nil, fmt.Errorf("failed to retrieve token, status: %d, body: %s", resp.StatusCode, string(body))
     }
 
-    var token Token
-    if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+    var tokenResponse TokenResponse
+    if err := json.NewDecoder(resp.Body).Decode(&tokenResponse); err != nil {
         return nil, err
     }
 
-    token.tokenExpiry = time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)
-    j.token = &token
+    if !tokenResponse.Success {
+        return nil, fmt.Errorf("token request unsuccessful, resultCode: %d", tokenResponse.ResultCode)
+    }
 
-    return &token, nil
+    j.token = &tokenResponse.Result
+    return &tokenResponse.Result, nil
+}
+
+func (j *JWTManager) GetAuthToken() (string, error) {
+    token, err := j.GetToken()
+    if err != nil {
+        return "", err
+    }
+    return token.AccessToken, nil
 }
