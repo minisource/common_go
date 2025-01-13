@@ -1,37 +1,46 @@
 package middleware
-//TODO:
-// import (
-// 	"net/http"
-// 	"strings"
 
-// 	"github.com/minisource/common_go/constants"
-// 	helper "github.com/minisource/common_go/http/helpers"
-// 	"github.com/minisource/common_go/service_errors"
-// 	client "github.com/ory/hydra-client-go"
-// )
+import (
+	"strings"
 
-// func OAuthValidationMiddleware(cfg *config.Config) gin.HandlerFunc {
-// 	var tokenService = services.NewOAuthService(cfg)
+	"github.com/gofiber/fiber/v2"
+	"github.com/minisource/apiclients/auth"
+	"github.com/minisource/apiclients/auth/models"
+	"github.com/minisource/common_go/constants"
+	helper "github.com/minisource/common_go/http/helper"
+	"github.com/minisource/common_go/service_errors"
+)
 
-// 	return func(c *gin.Context) {
-// 		var err error
-// 		tokenInfo := &client.OAuth2TokenIntrospection{}
-// 		auth := c.GetHeader(constants.AuthorizationHeaderKey)
-// 		token := strings.Split(auth, " ")
-// 		if auth == "" {
-// 			err = &service_errors.ServiceError{EndUserMessage: service_errors.TokenRequired}
-// 		} else {
-// 			tokenInfo, err = tokenService.ValidateToken(token[1])
-// 		}
-// 		if err != nil {
-// 			c.AbortWithStatusJSON(http.StatusUnauthorized, helper.GenerateBaseResponseWithError(
-// 				nil, false, helper.AuthError, err,
-// 			))
-// 			return
-// 		}
+func OAuthValidationMiddleware(authApiClient *helper.APIClient) fiber.Handler {
+	service := auth.NewAuthService(authApiClient)
 
-// 		c.Set("token_info", tokenInfo)
+	return func(c *fiber.Ctx) error {
+		var err error
+		tokenInfo := &models.ValidateTokenRes{}
 
-// 		c.Next()
-// 	}
-// }
+		// Get the Authorization header
+		authHeader := c.Get(constants.AuthorizationHeaderKey)
+		tokenParts := strings.Split(authHeader, " ")
+
+		// Check if the Authorization header is missing or invalid
+		if authHeader == "" {
+			err = &service_errors.ServiceError{EndUserMessage: service_errors.TokenRequired}
+		} else {
+			// Validate the token
+			tokenInfo, err = service.ValidateToken(models.ValidateTokenReq{Token: tokenParts[1]})
+		}
+
+		// Handle validation errors
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(
+				helper.GenerateBaseResponseWithError(nil, false, helper.AuthError, err),
+			)
+		}
+
+		// Store the token information in the context
+		c.Locals("token_info", tokenInfo)
+
+		// Proceed to the next middleware/handler
+		return c.Next()
+	}
+}
