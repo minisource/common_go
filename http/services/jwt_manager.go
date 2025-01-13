@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/minisource/common_go/constants"
 )
 
 type Token struct {
@@ -36,7 +38,7 @@ func NewJWTManager(clientID, clientSecret, tokenURL string) *JWTManager {
     return &JWTManager{
         clientID:     clientID,
         clientSecret: clientSecret,
-        tokenURL:     tokenURL,
+        tokenURL:     tokenURL + constants.GenerateTokenRoute,
     }
 }
 
