@@ -1,11 +1,8 @@
 package common
 
 import (
-	"math"
 	"math/rand"
-	"strconv"
 	"strings"
-	"time"
 )
 
 type PasswordConfig struct {
@@ -15,12 +12,6 @@ type PasswordConfig struct {
 	MaxLength        int
 	IncludeUppercase bool
 	IncludeLowercase bool
-}
-
-type OtpConfig struct {
-	ExpireTime time.Duration
-	Digits     int
-	Limiter    time.Duration
 }
 
 var (
@@ -109,13 +100,4 @@ func (cfg PasswordConfig) GeneratePassword() string {
 		inRune[i], inRune[j] = inRune[j], inRune[i]
 	})
 	return string(inRune)
-}
-
-func (cfg OtpConfig) GenerateOtp() string {
-	rand.Seed(time.Now().UnixNano())
-	min := int(math.Pow(10, float64(cfg.Digits-1)))   // 10^d-1 100000
-	max := int(math.Pow(10, float64(cfg.Digits)) - 1) // 999999 = 1000000 - 1 (10^d) -1
-
-	var num = rand.Intn(max-min) + min
-	return strconv.Itoa(num)
 }
