@@ -24,6 +24,8 @@ func NewLogger(cfg *LoggerConfig) Logger {
 		return newZapLogger(cfg)
 	} else if cfg.Logger == "zerolog" {
 		return newZeroLogger(cfg)
+	} else {
+		return newFiberLogger(cfg)
 	}
 	panic("logger not supported")
 }
