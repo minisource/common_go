@@ -1,56 +1,40 @@
 package models
 
 import (
-	"database/sql"
-	"time"
-
-	"gorm.io/gorm"
+    "context"
+    "database/sql"
+    "time"
+    "github.com/google/uuid"
 )
 
+// BaseModel represents the common fields for all models
 type BaseModel struct {
-	Id int `gorm:"primarykey"`
-
-	CreatedAt  time.Time    `gorm:"type:TIMESTAMP with time zone;not null"`
-	ModifiedAt sql.NullTime `gorm:"type:TIMESTAMP with time zone;null"`
-	DeletedAt  sql.NullTime `gorm:"type:TIMESTAMP with time zone;null"`
-
-	CreatedBy  int            `gorm:"not null"`
-	ModifiedBy *sql.NullInt64 `gorm:"null"`
-	DeletedBy  *sql.NullInt64 `gorm:"null"`
+    ID         uuid.UUID    `json:"id"`
+    CreatedAt  time.Time    `json:"created_at"`
+    ModifiedAt sql.NullTime `json:"modified_at,omitempty"`
+    DeletedAt  sql.NullTime `json:"deleted_at,omitempty"`
+    CreatedBy  int          `json:"created_by"`
+    ModifiedBy sql.NullInt64 `json:"modified_by,omitempty"`
+    DeletedBy  sql.NullInt64 `json:"deleted_by,omitempty"`
 }
 
-func (m *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
-	value := tx.Statement.Context.Value("UserId")
-	var userId = -1
-	// TODO: check userId type
-	if value != nil {
-		userId = int(value.(float64))
-	}
-	m.CreatedAt = time.Now().UTC()
-	m.CreatedBy = userId
-	return
+// SetUserContext sets the user ID in the context for database operations
+func SetUserContext(ctx context.Context, userID int) context.Context {
+    return context.WithValue(ctx, "UserId", userID)
 }
 
-func (m *BaseModel) BeforeUpdate(tx *gorm.DB) (err error) {
-	value := tx.Statement.Context.Value("UserId")
-	var userId = &sql.NullInt64{Valid: false}
-	// TODO: check userId type
-	if value != nil {
-		userId = &sql.NullInt64{Valid: true, Int64: int64(value.(float64))}
-	}
-	m.ModifiedAt = sql.NullTime{Time: time.Now().UTC(), Valid: true}
-	m.ModifiedBy = userId
-	return
-}
-
-func (m *BaseModel) BeforeDelete(tx *gorm.DB) (err error) {
-	value := tx.Statement.Context.Value("UserId")
-	var userId = &sql.NullInt64{Valid: false}
-	// TODO: check userId type
-	if value != nil {
-		userId = &sql.NullInt64{Valid: true, Int64: int64(value.(float64))}
-	}
-	m.DeletedAt = sql.NullTime{Time: time.Now().UTC(), Valid: true}
-	m.DeletedBy = userId
-	return
+// GetUserFromContext retrieves the user ID from context
+func GetUserFromContext(ctx context.Context) int {
+    value := ctx.Value("UserId")
+    if value == nil {
+        return -1
+    }
+    switch v := value.(type) {
+    case float64:
+        return int(v)
+    case int:
+        return v
+    default:
+        return -1
+    }
 }

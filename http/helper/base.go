@@ -1,98 +1,102 @@
 package helper
 
 import (
-	"context"
-	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
+    "context"
+    "github.com/gofiber/fiber/v2"
+    "github.com/google/uuid"
 )
 
-func Create[Ti any, To any](c *gin.Context, caller func(ctx context.Context, req *Ti) (*To, error)) {
-	req := new(Ti)
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
-		return
-	}
+// Create handles generic creation endpoints
+func Create[Ti any, To any](c *fiber.Ctx, caller func(ctx context.Context, req *Ti) (*To, error)) error {
+    req := new(Ti)
+    if err := c.BodyParser(req); err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
+    }
 
-	res, err := caller(c, req)
-	if err != nil {
-		c.AbortWithStatusJSON(TranslateErrorToStatusCode(err),
-			GenerateBaseResponseWithError(nil, false, InternalError, err))
-		return
-	}
-	c.JSON(http.StatusCreated, GenerateBaseResponse(res, true, 0))
+    res, err := caller(c.Context(), req)
+    if err != nil {
+        return c.Status(TranslateErrorToStatusCode(err)).
+            JSON(GenerateBaseResponseWithError(nil, false, InternalError, err))
+    }
+    
+    return c.Status(fiber.StatusCreated).
+        JSON(GenerateBaseResponse(res, true, 0))
 }
 
-func Update[Ti any, To any](c *gin.Context, caller func(ctx context.Context, id int, req *Ti) (*To, error)) {
-	id, _ := strconv.Atoi(c.Params.ByName("id"))
-	req := new(Ti)
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
-		return
-	}
+// Update handles generic update endpoints
+func Update[Ti any, To any](c *fiber.Ctx, caller func(ctx context.Context, id uuid.UUID, req *Ti) (*To, error)) error {
+    id, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponse(nil, false, ValidationError))
+    }
 
-	res, err := caller(c, id, req)
-	if err != nil {
-		c.AbortWithStatusJSON(TranslateErrorToStatusCode(err),
-			GenerateBaseResponseWithError(nil, false, InternalError, err))
-		return
-	}
-	c.JSON(http.StatusOK, GenerateBaseResponse(res, true, 0))
+    req := new(Ti)
+    if err := c.BodyParser(req); err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
+    }
+
+    res, err := caller(c.Context(), id, req)
+    if err != nil {
+        return c.Status(TranslateErrorToStatusCode(err)).
+            JSON(GenerateBaseResponseWithError(nil, false, InternalError, err))
+    }
+
+    return c.Status(fiber.StatusOK).
+        JSON(GenerateBaseResponse(res, true, 0))
 }
 
-func Delete(c *gin.Context, caller func(ctx context.Context, id int) error) {
-	id, _ := strconv.Atoi(c.Params.ByName("id"))
-	if id == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound,
-			GenerateBaseResponse(nil, false, ValidationError))
-		return
-	}
+// Delete handles generic deletion endpoints
+func Delete(c *fiber.Ctx, caller func(ctx context.Context, id uuid.UUID) error) error {
+    id, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponse(nil, false, ValidationError))
+    }
 
-	err := caller(c, id)
-	if err != nil {
-		c.AbortWithStatusJSON(TranslateErrorToStatusCode(err),
-			GenerateBaseResponseWithError(nil, false, InternalError, err))
-		return
-	}
-	c.JSON(http.StatusOK, GenerateBaseResponse(nil, true, 0))
+    if err := caller(c.Context(), id); err != nil {
+        return c.Status(TranslateErrorToStatusCode(err)).
+            JSON(GenerateBaseResponseWithError(nil, false, InternalError, err))
+    }
+
+    return c.Status(fiber.StatusOK).
+        JSON(GenerateBaseResponse(nil, true, 0))
 }
 
-func GetById[To any](c *gin.Context, caller func(c context.Context, id int) (*To, error)) {
-	id, _ := strconv.Atoi(c.Params.ByName("id"))
-	if id == 0 {
-		c.AbortWithStatusJSON(http.StatusNotFound,
-			GenerateBaseResponse(nil, false, ValidationError))
-		return
-	}
+// GetByID handles generic get-by-id endpoints
+func GetByID[To any](c *fiber.Ctx, caller func(ctx context.Context, id uuid.UUID) (*To, error)) error {
+    id, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponse(nil, false, ValidationError))
+    }
 
-	res, err := caller(c, id)
-	if err != nil {
-		c.AbortWithStatusJSON(TranslateErrorToStatusCode(err),
-			GenerateBaseResponseWithError(nil, false, InternalError, err))
-		return
-	}
-	c.JSON(http.StatusOK, GenerateBaseResponse(res, true, 0))
+    res, err := caller(c.Context(), id)
+    if err != nil {
+        return c.Status(TranslateErrorToStatusCode(err)).
+            JSON(GenerateBaseResponseWithError(nil, false, InternalError, err))
+    }
+
+    return c.Status(fiber.StatusOK).
+        JSON(GenerateBaseResponse(res, true, 0))
 }
 
-func GetByFilter[Ti any, To any](c *gin.Context, caller func(c context.Context, req *Ti) (*To, error)) {
-	req := new(Ti)
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest,
-			GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
-		return
-	}
+// GetByFilter handles generic filter-based get endpoints
+func GetByFilter[Ti any, To any](c *fiber.Ctx, caller func(ctx context.Context, req *Ti) (*To, error)) error {
+    req := new(Ti)
+    if err := c.BodyParser(req); err != nil {
+        return c.Status(fiber.StatusBadRequest).
+            JSON(GenerateBaseResponseWithValidationError(nil, false, ValidationError, err))
+    }
 
-	res, err := caller(c, req)
-	if err != nil {
-		c.AbortWithStatusJSON(TranslateErrorToStatusCode(err),
-			GenerateBaseResponseWithError(nil, false, InternalError, err))
-		return
-	}
-	c.JSON(http.StatusOK, GenerateBaseResponse(res, true, 0))
+    res, err := caller(c.Context(), req)
+    if err != nil {
+        return c.Status(TranslateErrorToStatusCode(err)).
+            JSON(GenerateBaseResponseWithError(nil, false, InternalError, err))
+    }
+
+    return c.Status(fiber.StatusOK).
+        JSON(GenerateBaseResponse(res, true, 0))
 }

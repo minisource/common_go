@@ -1,10 +1,9 @@
-package middlewares
-
+package middleware
+//TODO:
 // import (
 // 	"net/http"
 // 	"strings"
 
-// 	"github.com/gin-gonic/gin"
 // 	"github.com/minisource/common_go/constants"
 // 	helper "github.com/minisource/common_go/http/helpers"
 // 	"github.com/minisource/common_go/service_errors"

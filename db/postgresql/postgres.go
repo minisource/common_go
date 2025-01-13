@@ -1,16 +1,17 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
 
-var dbClient *gorm.DB
+var dbConn *sql.DB
 
+// PostgresConfig holds database connection configuration
 type PostgresConfig struct {
 	Host            string
 	Port            string
@@ -23,36 +24,42 @@ type PostgresConfig struct {
 	ConnMaxLifetime time.Duration
 }
 
+// InitDb initializes the database connection
 func InitDb(cfg *PostgresConfig) error {
-	var err error
-	cnn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Tehran",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Tehran",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password,
 		cfg.DbName, cfg.SSLMode)
 
-	dbClient, err = gorm.Open(postgres.Open(cnn), &gorm.Config{})
+	var err error
+	dbConn, err = sql.Open("postgres", connStr)
 	if err != nil {
-		return err
+		return fmt.Errorf("error opening database: %v", err)
 	}
 
-	sqlDb, _ := dbClient.DB()
-	err = sqlDb.Ping()
+	// Test the connection
+	err = dbConn.Ping()
 	if err != nil {
-		return err
+		return fmt.Errorf("error connecting to the database: %v", err)
 	}
 
-	sqlDb.SetMaxIdleConns(cfg.MaxIdleConns)
-	sqlDb.SetMaxOpenConns(cfg.MaxOpenConns)
-	sqlDb.SetConnMaxLifetime(cfg.ConnMaxLifetime * time.Minute)
+	// Set connection pool settings
+	dbConn.SetMaxIdleConns(cfg.MaxIdleConns)
+	dbConn.SetMaxOpenConns(cfg.MaxOpenConns)
+	dbConn.SetConnMaxLifetime(cfg.ConnMaxLifetime * time.Minute)
 
-	log.Println("Db connection established")
+	log.Println("Database connection established")
 	return nil
 }
 
-func GetDb() *gorm.DB {
-	return dbClient
+// GetDB returns the database connection
+func GetDB() *sql.DB {
+	return dbConn
 }
 
-func CloseDb() {
-	con, _ := dbClient.DB()
-	con.Close()
+// CloseDB closes the database connection
+func CloseDB() error {
+	if dbConn != nil {
+		return dbConn.Close()
+	}
+	return nil
 }
