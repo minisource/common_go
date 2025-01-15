@@ -8,9 +8,9 @@ import (
 )
 
 type OtpConfig struct {
-	ExpireTime time.Duration
-	Digits     int
-	Limiter    time.Duration
+	ExpireTime time.Duration `env:"OTP_EXPIRE_TIME"`
+	Digits     int           `env:"OTP_DIGITS"`
+	Limiter    time.Duration `env:"OTP_LIMITER"`
 }
 
 func (cfg OtpConfig) GenerateOtp() string {
