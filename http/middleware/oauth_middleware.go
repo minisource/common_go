@@ -12,7 +12,8 @@ import (
 )
 
 func OAuthValidationMiddleware(authApiClient *helper.APIClient) fiber.Handler {
-	service := auth.NewAuthService(authApiClient)
+	auth.NewAuthService(authApiClient)
+	service := auth.GetAuthService()
 
 	return func(c *fiber.Ctx) error {
 		var err error

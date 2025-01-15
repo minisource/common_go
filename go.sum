@@ -161,8 +161,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
-github.com/minisource/apiclients v0.0.0-20250113173457-a779d9d1629d h1:+1iMnMoPwJCW2heSAvvEJdak0YjPfjKFQyIRbWAqtn8=
-github.com/minisource/apiclients v0.0.0-20250113173457-a779d9d1629d/go.mod h1:5ewus8tpzfSYBxWisKtJh9Pzw6XzuPxVXXzdTp8bnyI=
+github.com/minisource/apiclients v0.0.0-20250115112100-552aa84987ff h1:7WA8CXYJfdsCOUWZKu4pT/fitZF/B8bZPqZ7LaxyI/0=
+github.com/minisource/apiclients v0.0.0-20250115112100-552aa84987ff/go.mod h1:QFl17dJhs+Y796xebnqo4XpolGt1vIztDMR7T3BoIm4=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
