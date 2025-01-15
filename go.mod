@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
+	github.com/minisource/apiclients v0.0.0-20250113173457-a779d9d1629d
 	github.com/rs/zerolog v1.33.0
 	github.com/valyala/fasthttp v1.51.0
 	go.uber.org/zap v1.27.0
@@ -22,7 +23,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/minisource/apiclients v0.0.0-20250113173457-a779d9d1629d // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.55.0 // indirect
