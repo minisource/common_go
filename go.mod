@@ -45,6 +45,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ory/hydra-client-go v1.11.8
+	github.com/ory/kratos-client-go v1.2.1
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.20.5
 	go.uber.org/multierr v1.11.0 // indirect

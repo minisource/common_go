@@ -8,15 +8,18 @@ import(
 var hydraClient *hydra.APIClient
 
 type HydraConfig struct{
-    PrivateUrl string `env:"HYDRA_URL_PRIVATE"`
-    PublicUrl string `env:"HYDRA_URL_PUBLIC"`
+    AdminURL string `env:"HYDRA_ADMIN_URL"`
+    PublicURL string `env:"HYDRA_PUBLIC_URL"`
 }
 
 func InitHydra(cfg *HydraConfig) {
 	config := hydra.NewConfiguration()
     config.Servers = hydra.ServerConfigurations{
         {
-            URL: cfg.PrivateUrl,
+            URL: cfg.AdminURL, // استفاده از Admin API برای عملیات مدیریتی
+        },
+        {
+            URL: cfg.PublicURL, // استفاده از Public API برای عملیات عمومی
         },
     }
     hydraClient = hydra.NewAPIClient(config)
