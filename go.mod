@@ -40,6 +40,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-redis/redis/v7 v7.4.1
 	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-colorable v0.1.13 // indirect
