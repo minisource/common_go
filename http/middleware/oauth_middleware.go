@@ -11,7 +11,7 @@ import (
 	"github.com/minisource/common_go/service_errors"
 )
 
-func OAuthValidationMiddleware(authApiClient *helper.APIClient, scop string, aud *[]string) fiber.Handler {
+func OAuthValidationMiddleware(authApiClient *helper.APIClient, scop *string, aud []string) fiber.Handler {
 	oauth.NewOAuthService(authApiClient)
 	service := oauth.GetOAuthService()
 
