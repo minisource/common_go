@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/minisource/apiclients v0.0.0-20250118132743-0215151163e3
+	github.com/ory/keto-client-go v0.11.0-alpha.0
 	github.com/rs/zerolog v1.33.0
 	github.com/valyala/fasthttp v1.51.0
 	go.uber.org/zap v1.27.0
