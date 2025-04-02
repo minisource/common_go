@@ -1,120 +1,140 @@
 package helper
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"errors"
+	"time"
 
-	"github.com/minisource/common_go/http/services"
+	"github.com/go-resty/resty/v2"
 )
 
 type APIClient struct {
-	BaseURL    string
-	JWTManager *services.JWTManager
+	client  *resty.Client
+	baseURL string
 }
 
-func NewAPIClient(baseURL string, jwtManager *services.JWTManager) *APIClient {
+type RestyResponse struct {
+	StatusCode int
+	Body       []byte
+	Headers    map[string]string
+	Error      error
+}
+
+// NewAPIClient initializes a new Resty client with default configurations
+func NewAPIClient(baseURL string) *APIClient {
+	client := resty.New().
+		SetTimeout(30*time.Second).
+		SetRetryCount(3).
+		SetRetryWaitTime(2*time.Second).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Accept", "application/json")
+
 	return &APIClient{
-		BaseURL:    baseURL,
-		JWTManager: jwtManager,
+		client:  client,
+		baseURL: baseURL,
 	}
 }
 
-func (client *APIClient) MakeRequestWithAuthorization(method, resourcePath string, bodyData interface{}) ([]byte, error) {
-	// دریافت توکن
-	token, err := client.JWTManager.GetToken()
-	if err != nil {
-		return nil, err
-	}
-
-	var reqBody io.Reader
-
-	// اگر متد نیاز به بادی دارد، داده‌ها را تبدیل به JSON می‌کنیم.
-	if bodyData != nil {
-		jsonBody, err := json.Marshal(bodyData)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling body data: %v", err)
-		}
-		reqBody = bytes.NewReader(jsonBody)
-	}
-
-	// ایجاد درخواست HTTP
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-
-	// اضافه کردن هدر برای احراز هویت
-	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
-
-	// اگر متد `POST`, `PUT`, `PATCH` است، باید Content-Type را تنظیم کنیم
-	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	// ارسال درخواست
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// بررسی وضعیت پاسخ
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("received non-200 response status: %d", resp.StatusCode)
-	}
-
-	// خواندن بدنه پاسخ
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %v", err)
-	}
-
-	return body, nil
+func (r *APIClient) SetBasicAuth(username, password string) *APIClient {
+	r.client.SetBasicAuth(username, password)
+	return r
 }
 
-func (client *APIClient) MakeRequest(method, resourcePath string, bodyData interface{}) ([]byte, error) {
-	var reqBody io.Reader
+// SetHeader allows adding custom headers to the client
+func (r *APIClient) SetHeader(key, value string) *APIClient {
+	r.client.SetHeader(key, value)
+	return r
+}
 
-	// اگر متد نیاز به بادی دارد، داده‌ها را تبدیل به JSON می‌کنیم.
-	if bodyData != nil {
-		jsonBody, err := json.Marshal(bodyData)
-		if err != nil {
-			return nil, fmt.Errorf("error marshaling body data: %v", err)
+// SetTimeout allows customizing the timeout
+func (r *APIClient) SetTimeout(timeout time.Duration) *APIClient {
+	r.client.SetTimeout(timeout)
+	return r
+}
+
+// Get performs a GET request
+func (r *APIClient) Get(endpoint string) *RestyResponse {
+	resp, err := r.client.R().
+		Get(r.baseURL + endpoint)
+
+	return r.buildResponse(resp, err)
+}
+
+// Post performs a POST request with a body
+func (r *APIClient) Post(endpoint string, body interface{}) *RestyResponse {
+	resp, err := r.client.R().
+		SetBody(body).
+		Post(r.baseURL + endpoint)
+
+	return r.buildResponse(resp, err)
+}
+
+// Put performs a PUT request with a body
+func (r *APIClient) Put(endpoint string, body interface{}) *RestyResponse {
+	resp, err := r.client.R().
+		SetBody(body).
+		Put(r.baseURL + endpoint)
+
+	return r.buildResponse(resp, err)
+}
+
+// Delete performs a DELETE request
+func (r *APIClient) Delete(endpoint string) *RestyResponse {
+	resp, err := r.client.R().
+		Delete(r.baseURL + endpoint)
+
+	return r.buildResponse(resp, err)
+}
+
+// buildResponse constructs a standardized response
+func (r *APIClient) buildResponse(resp *resty.Response, err error) *RestyResponse {
+	response := &RestyResponse{
+		Headers: make(map[string]string),
+	}
+
+	if err != nil {
+		response.Error = err
+		return response
+	}
+
+	if resp == nil {
+		response.Error = errors.New("nil response received")
+		return response
+	}
+
+	response.StatusCode = resp.StatusCode()
+	response.Body = resp.Body()
+
+	// Copy headers
+	for key, values := range resp.Header() {
+		if len(values) > 0 {
+			response.Headers[key] = values[0]
 		}
-		reqBody = bytes.NewReader(jsonBody)
 	}
 
-	// ایجاد درخواست HTTP
-	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", client.BaseURL, resourcePath), reqBody)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
+	return response
+}
 
-	// اگر متد `POST`, `PUT`, `PATCH` است، باید Content-Type را تنظیم کنیم
-	if method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch {
-		req.Header.Set("Content-Type", "application/json")
+// GetJSON performs a GET request and unmarshals the response into the provided struct
+func (r *APIClient) GetJSON(endpoint string, result interface{}) error {
+	resp := r.Get(endpoint)
+	if resp.Error != nil {
+		return resp.Error
 	}
-
-	// ارسال درخواست
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %v", err)
+	if resp.StatusCode >= 400 {
+		return errors.New("request failed with status: " + string(resp.StatusCode))
 	}
-	defer resp.Body.Close()
+	return json.Unmarshal(resp.Body, result)
+}
 
-	// بررسی وضعیت پاسخ
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("received non-200 response status: %d", resp.StatusCode)
+// PostJSON performs a POST request and unmarshals the response into the provided struct
+func (r *APIClient) PostJSON(endpoint string, body, result interface{}) error {
+	resp := r.Post(endpoint, body)
+	if resp.Error != nil {
+		return resp.Error
 	}
-
-	// خواندن بدنه پاسخ
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %v", err)
+	if resp.StatusCode >= 400 {
+		return errors.New("request failed with status: " + string(resp.StatusCode))
 	}
-
-	return body, nil
+	return json.Unmarshal(resp.Body, result)
 }
