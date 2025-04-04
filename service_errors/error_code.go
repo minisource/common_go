@@ -14,6 +14,7 @@ const (
 	OtpNotValid = "Otp invalid"
 
 	// User
+	UserDisabled    = "UserDisabled"
 	EmailExists    = "Email exists"
 	UsernameExists = "Username exists"
 	PermissionDenied = "Permission denied"
