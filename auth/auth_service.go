@@ -23,25 +23,34 @@ type AuthService struct {
 	Certificate   string
 }
 
-func NewAuthService(endpoint, clientID, clientSecret, certificate, organization, application string) *AuthService {
+type AuthServiceConfig struct {
+	Endpoint     string
+	ClientID     string
+	ClientSecret string
+	Certificate  string
+	Organization string
+	Application  string
+}
+
+func NewAuthService(config AuthServiceConfig) *AuthService {
 	casdoor := casdoorsdk.NewClient(
-		endpoint,     // Casdoor server URL
-		clientID,     // Client ID
-		clientSecret, // Client Secret
-		certificate,  // JWT public key or certificate
-		organization, // Casdoor organization
-		application,  // Casdoor application
+		config.Endpoint,     // Casdoor server URL
+		config.ClientID,     // Client ID
+		config.ClientSecret, // Client Secret
+		config.Certificate,  // JWT public key or certificate
+		config.Organization, // Casdoor organization
+		config.Application,  // Casdoor application
 	)
 
 	authService = &AuthService{
 		CasdoorClient: casdoor,
-		APIClient:     helper.NewAPIClient(endpoint).SetBasicAuth(clientID, clientSecret),
-		Application:   application,
-		Organization:  organization,
-		ClientID:      clientID,
-		ClientSecret:  clientSecret,
-		Endpoint:      endpoint,
-		Certificate:   certificate,
+		APIClient:     helper.NewAPIClient(config.Endpoint).SetBasicAuth(config.ClientID, config.ClientSecret),
+		Application:   config.Application,
+		Organization:  config.Organization,
+		ClientID:      config.ClientID,
+		ClientSecret:  config.ClientSecret,
+		Endpoint:      config.Endpoint,
+		Certificate:   config.Certificate,
 	}
 	return authService
 }
@@ -53,7 +62,7 @@ func GetAuthService() *AuthService {
 // RegisterUser registers a new user with forbidden status
 func (s *AuthService) RegisterUser(countryCode, phoneNumber string) error {
 	// Fetch the newly created user to get the ID
-	existedUser, err := s.CasdoorClient.GetUserByPhone(countryCode + phoneNumber)
+	existedUser, _ := s.CasdoorClient.GetUserByPhone(countryCode + phoneNumber)
 	if existedUser != nil {
 		return nil
 	}
