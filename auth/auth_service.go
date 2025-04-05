@@ -59,6 +59,31 @@ func GetAuthService() *AuthService {
 	return authService
 }
 
+func (s *AuthService) HealthCheck() error {
+    resp := s.APIClient.Get("/api/health")
+    
+    if resp.Error != nil {
+        return resp.Error
+    }
+
+    if resp.StatusCode != 200 {
+        return fmt.Errorf("health check failed with status %d: %s", 
+            resp.StatusCode, string(resp.Body))
+    }
+
+    var healthResp models.HealthCheckResponse
+    if err := json.Unmarshal(resp.Body, &healthResp); err != nil {
+        return fmt.Errorf("failed to parse health check response: %v", err)
+    }
+
+    // Optional: Validate status
+    if healthResp.Status != "ok" {
+        return fmt.Errorf("health check status is not 'ok': %s", healthResp.Status)
+    }
+
+    return nil
+}
+
 // RegisterUser registers a new user with forbidden status
 func (s *AuthService) RegisterUser(countryCode, phoneNumber string) error {
 	// Fetch the newly created user to get the ID
