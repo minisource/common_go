@@ -1,4 +1,4 @@
-package gorm
+package gormdb
 
 
 import (
@@ -23,7 +23,7 @@ type GormConfig struct {
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration
 }
-
+	
 func InitDb(cfg *GormConfig) error {
 	var err error
 	cnn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=Asia/Tehran",
